@@ -87,7 +87,7 @@ export default function AdvancedTodoApp() {
   return (
     <div
       className={`min-h-screen ${
-        darkMode ? "dark bg-gray-900 text-white" : "bg-gray-100 text-black"
+        darkMode ? "dark bg-[#1f1f1f] text-white" : "bg-gray-100 text-black"
       }`}
     >
       <div className="max-w-md mx-auto pt-10 px-4">
@@ -95,7 +95,7 @@ export default function AdvancedTodoApp() {
           <h1 className="text-2xl font-bold">Advanced Todo App</h1>
           <button
             onClick={toggleDarkMode}
-            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+            className="p-2 rounded-lg bg-gray-200 dark:bg-white/10 "
             aria-label={
               darkMode ? "Switch to light mode" : "Switch to dark mode"
             }
@@ -110,7 +110,7 @@ export default function AdvancedTodoApp() {
             onChange={(e) => setNewTodo(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && addTodo()}
             placeholder="Add a new todo"
-            className="flex-grow mr-2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+            className="flex-grow mr-2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-white/10 dark:border-white/5"
           />
           <button
             onClick={addTodo}
@@ -125,14 +125,14 @@ export default function AdvancedTodoApp() {
               key={todo.id}
               {...handlers}
               id={todo.id}
-              className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-transform duration-200 ease-in-out transform hover:scale-105"
+              className="flex items-center justify-between bg-white dark:bg-white/10 p-4 rounded-lg shadow transition-transform duration-200 ease-in-out transform"
             >
               <div className="flex items-center">
                 <input
                   type="checkbox"
                   checked={todo.completed}
                   onChange={() => toggleTodo(todo.id)}
-                  className="mr-3 form-checkbox h-5 w-5 text-blue-500 rounded focus:ring-blue-500 dark:bg-gray-700"
+                  className="mr-3 form-checkbox h-5 w-5 text-blue-500 rounded focus:ring-blue-500 dark:bg-white/10"
                 />
                 <span
                   className={`${
@@ -154,9 +154,9 @@ export default function AdvancedTodoApp() {
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+        {/* <p className="mt-4 text-sm text-black/50 dark:text-white/50">
           Swipe left on a todo to delete it (on touch devices)
-        </p>
+        </p> */}
       </div>
     </div>
   );
