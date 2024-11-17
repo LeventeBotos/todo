@@ -1,101 +1,163 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import { SwipeEventData, useSwipeable } from "react-swipeable";
+import { initializeApp } from "firebase/app";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  doc,
+} from "firebase/firestore";
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBDsmFfgH6QCK0fXkTExpZHZ3AYcyUvizE",
+  authDomain: "todo-leventebotos.firebaseapp.com",
+  projectId: "todo-leventebotos",
+  storageBucket: "todo-leventebotos.firebasestorage.app",
+  messagingSenderId: "434304152394",
+  appId: "1:434304152394:web:a10d1539636a300ea5c7b3",
+  measurementId: "G-HDLDC7DLB4",
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+interface Todo {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
+export default function AdvancedTodoApp() {
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [newTodo, setNewTodo] = useState("");
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "todos"), (snapshot) => {
+      const updatedTodos = snapshot.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() } as Todo)
+      );
+      setTodos(updatedTodos);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const addTodo = async () => {
+    if (newTodo.trim() !== "") {
+      await addDoc(collection(db, "todos"), {
+        text: newTodo,
+        completed: false,
+      });
+      setNewTodo("");
+    }
+  };
+
+  const toggleTodo = async (id: string) => {
+    const todoRef = doc(db, "todos", id);
+    const todo = todos.find((t) => t.id === id);
+    if (todo) {
+      await updateDoc(todoRef, { completed: !todo.completed });
+    }
+  };
+
+  const deleteTodo = async (id: string) => {
+    await deleteDoc(doc(db, "todos", id));
+  };
+
+  const handlers = useSwipeable({
+    onSwipedLeft: (eventData: SwipeEventData) => {
+      const id = (eventData.event.target as HTMLElement)?.id;
+      if (id) deleteTodo(id);
+    },
+    trackMouse: true,
+  });
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div
+      className={`min-h-screen ${
+        darkMode ? "dark bg-gray-900 text-white" : "bg-gray-100 text-black"
+      }`}
+    >
+      <div className="max-w-md mx-auto pt-10 px-4">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Advanced Todo App</h1>
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+            aria-label={
+              darkMode ? "Switch to light mode" : "Switch to dark mode"
+            }
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {darkMode ? "🌞" : "🌙"}
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <div className="flex mb-4">
+          <input
+            type="text"
+            value={newTodo}
+            onChange={(e) => setNewTodo(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && addTodo()}
+            placeholder="Add a new todo"
+            className="flex-grow mr-2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <button
+            onClick={addTodo}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Add
+          </button>
+        </div>
+        <ul className="space-y-2">
+          {todos.map((todo) => (
+            <li
+              key={todo.id}
+              {...handlers}
+              id={todo.id}
+              className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-transform duration-200 ease-in-out transform hover:scale-105"
+            >
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={todo.completed}
+                  onChange={() => toggleTodo(todo.id)}
+                  className="mr-3 form-checkbox h-5 w-5 text-blue-500 rounded focus:ring-blue-500 dark:bg-gray-700"
+                />
+                <span
+                  className={`${
+                    todo.completed
+                      ? "line-through text-gray-500 dark:text-gray-400"
+                      : ""
+                  }`}
+                >
+                  {todo.text}
+                </span>
+              </div>
+              <button
+                onClick={() => deleteTodo(todo.id)}
+                className="text-red-500 hover:text-red-700 focus:outline-none"
+                aria-label="Delete todo"
+              >
+                🗑️
+              </button>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+          Swipe left on a todo to delete it (on touch devices)
+        </p>
+      </div>
     </div>
   );
 }
